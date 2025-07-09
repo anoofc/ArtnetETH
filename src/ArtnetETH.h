@@ -1,10 +1,10 @@
-#ifndef ARTNETETH_LILYGO_H
-#define ARTNETETH_LILYGO_H
+#ifndef ARTNETETH_H
+#define ARTNETETH_H
 
 #include <ETH.h>
 #include <WiFiUdp.h>
 
-class ArtnetETH_LILYGO {
+class ArtnetETH {
 public:
     ArtnetETH_LILYGO();
     void begin();
