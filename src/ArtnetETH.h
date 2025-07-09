@@ -6,7 +6,7 @@
 
 class ArtnetETH {
 public:
-    ArtnetETH_LILYGO();
+    ArtnetETH();
     void begin();
     bool read();
     uint8_t* getDmxFrame();
