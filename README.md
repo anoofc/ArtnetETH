@@ -34,7 +34,7 @@ Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP3
 | CLK\_MODE  | GPIO0 (pull-up) |
 | PWR\_EN    | 5               |
 
-*Verify pin mappings for your specific board. Alter **``** arguments if pins differ.*
+*Verify pin mappings for your specific board.*
 
 ## Installation
 
