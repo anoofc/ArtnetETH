@@ -57,9 +57,9 @@ Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP3
 
 ```cpp
 #include <ETH.h>
-#include <ArtnetETH_LILYGO.h>
+#include <ArtnetETH.h>
 
-ArtnetETH_LILYGO artnet;
+ArtnetETH artnet;
 
 void setup() {
   Serial.begin(115200);
