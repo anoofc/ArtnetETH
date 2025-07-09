@@ -32,7 +32,7 @@ Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP3
 | MDC        | 23              |
 | MDIO       | 18              |
 | CLK\_MODE  | GPIO0 (pull-up) |
-| PWR\_EN    | 5               |
+| PWR\_EN    | 12              |
 
 *Verify pin mappings for your specific board.*
 
@@ -56,38 +56,62 @@ Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP3
 ### Basic Setup for LAN8720 ESP32
 
 ```cpp
+/*
+ - This assumes your board uses LAN8720 Ethernet PHY. Change the ETH_TYPE, ETH_ADDR, MDC/MDIO pins based on your hardware.
+ - The sketch reads ArtDMX packets and prints the universe, data length, and first DMX channel value.
+ - You can easily hook this up to control LEDs, relays, servos, or other DMX-reactive elements.
+*/
+
 #include <ETH.h>
+#include <WiFiUdp.h>
 #include <ArtnetETH.h>
+
+// Replace with your board-specific PHY settings if needed
+#define ETH_TYPE       ETH_PHY_LAN8720
+#define ETH_ADDR       1
+#define ETH_POWER_PIN  -1
+#define ETH_MDC_PIN    23
+#define ETH_MDIO_PIN   18
 
 ArtnetETH artnet;
 
 void setup() {
   Serial.begin(115200);
-  // Initialize Ethernet with LAN8720 PHY
-  // Arguments: powerPin, mdcPin, mdioPin, clkMode, phyAddress, phyType
-  ETH.begin(5, 23, 18, ETH_CLK_MODE_GPIO0_IN, 0, ETH_PHY_LAN8720);
-  delay(1000); // wait for link
+  delay(1000);
+  Serial.println("Starting ArtnetETH Example");
 
-  if (ETH.linkUp()) {
-    Serial.printf("ETHIP: %s\n", ETH.localIP().toString().c_str());
-  } else {
-    Serial.println("Ethernet link failed");
+  // Initialize Ethernet
+  ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE);
+
+  // Wait for Ethernet link
+  Serial.println("Waiting for Ethernet link...");
+  while (!ETH.linkUp()) {
+    delay(500);
+    Serial.print(".");
   }
+
+  Serial.println();
+  Serial.print("Connected, IP address: ");
+  Serial.println(ETH.localIP());
 
   artnet.begin();
 }
 
 void loop() {
   if (artnet.read()) {
-    Serial.printf("Universe: %u, Sequence: %u, Length: %u\n",
-                  artnet.getUniverse(), artnet.getSequence(), artnet.getLength());
+    Serial.print("DMX Received - Universe: ");
+    Serial.print(artnet.getUniverse());
+    Serial.print(" | Length: ");
+    Serial.print(artnet.getLength());
+    Serial.print(" | First Channel Value: ");
+    Serial.println(artnet.getDmxFrame()[0]);
 
-    uint8_t* dmx = artnet.getDmxFrame();
-    for (uint16_t i = 0; i < artnet.getLength(); i++) {
-      Serial.print(dmx[i]);
-      Serial.print(' ');
+    // Example: turn on an LED if first DMX value is above threshold
+    if (artnet.getDmxFrame()[0] > 127) {
+      // digitalWrite(LED_BUILTIN, HIGH);
+    } else {
+      // digitalWrite(LED_BUILTIN, LOW);
     }
-    Serial.println();
   }
 }
 ```
