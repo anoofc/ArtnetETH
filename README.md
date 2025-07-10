@@ -9,6 +9,7 @@ Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP3
 
 - Receive Art-Net DMX (ArtDMX) packets on UDP port 6454.
 - Retrieve DMX frame data (up to 512 channels), sequence, universe, and packet length.
+- **Direct NeoPixel (WS2812) control via Art-Net DMX.**
 - Configurable Ethernet initialization for LAN8720-based ESP32 boards.
 - Minimal dependencies and lightweight implementation.
 
@@ -116,10 +117,55 @@ void loop() {
 }
 ```
 
+### NeoPixel Example
+
+This example shows how to control a WS2812/NeoPixel LED strip using Art-Net DMX data. Each pixel uses 3 DMX channels (R, G, B).
+
+```cpp
+#include <ETH.h>
+#include <WiFiUdp.h>
+#include <ArtnetETH.h>
+
+#define ETH_TYPE       ETH_PHY_LAN8720
+#define ETH_ADDR       1
+#define ETH_POWER_PIN  -1
+#define ETH_MDC_PIN    23
+#define ETH_MDIO_PIN   18
+
+#define NEOPIXEL_PIN   13        // GPIO for NeoPixel data
+#define NUM_PIXELS     16        // Number of LEDs in the strip
+#define DMX_START_CH   0         // Start at DMX channel 0
+
+ArtnetETH artnet;
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE);
+  while (!ETH.linkUp()) delay(100);
+
+  Serial.println("Starting ArtnetETH NeoPixel Example");
+  Serial.print("IP address: ");
+  Serial.println(ETH.localIP());
+
+  artnet.begin();
+
+  // Initialize NeoPixel (pin, num pixels, start DMX channel)
+  artnet.initNeoPixel(NEOPIXEL_PIN, NUM_PIXELS, DMX_START_CH);
+}
+
+void loop() {
+  artnet.read();  // Art-Net DMX received frames update NeoPixels automatically
+}
+```
+
 ### Examples
 
-- **DataDump**: Prints raw DMX channels to Serial. See `examples/DataDump/DataDump.ino`.
-- **BasicRead**: Reads and prints specific channel values. See `examples/BasicRead/BasicRead.ino`.
+- **DataDump**: Prints raw DMX channels to Serial. See `Examples/DataDump/DataDump.ino`.
+- **BasicRead**: Reads and prints specific channel values. See `Examples/BasicRead/BasicRead.ino`.
+- **Neopixel**: Controls an addressable NeoPixel (WS2812) LED strip using Art-Net DMX. See `Examples/Neopixel/Neopixel.ino`.
+
 
 ## API Reference
 
