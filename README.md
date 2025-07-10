@@ -1,6 +1,6 @@
 # ArtnetETH
 
-**Version**: 1.0.0\
+**Version**: 1.1.0\
 **Author**: Anoof Chappangathil [anoof7262@gmail.com](mailto\:anoof7262@gmail.com)
 
 Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP32 boards using the LAN8720 PHY (e.g., LILYGO T-Ethernet Lite).
