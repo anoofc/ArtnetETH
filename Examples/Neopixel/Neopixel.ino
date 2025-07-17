@@ -26,9 +26,12 @@
 #define ETH_MDC_PIN    23
 #define ETH_MDIO_PIN   18
 
-#define NEOPIXEL_PIN   13      // GPIO13 (or your data pin)
-#define NUM_PIXELS     16      // Number of NeoPixels
-#define DMX_START_CH   0       // DMX start channel (0–509 for RGB)
+#define NEOPIXEL_PIN   13        // GPIO for NeoPixel data
+#define NUM_PIXELS     340       // Number of LEDs in the strip
+#define DMX_START_CH   0         // Start at DMX channel 0
+
+#define ARTNET_UNIVERSES  ((NUM_PIXELS * 3 + 509) / 510)  // Calculate how many universes needed
+#define BASE_UNIVERSE     0       // Starting universe number
 
 // Art-Net object
 ArtnetETH artnet;
@@ -50,11 +53,10 @@ void setup() {
   Serial.print("Connected, IP: ");
   Serial.println(ETH.localIP());
 
-  artnet.begin();
+  artnet.begin(ARTNET_UNIVERSES, BASE_UNIVERSE);
 
   // Initialize NeoPixel on NEOPIXEL_PIN, NUM_PIXELS, starting at DMX channel DMX_START_CH
   artnet.initNeoPixel(NEOPIXEL_PIN, NUM_PIXELS, DMX_START_CH);
-}
 
 void loop() {
   // Each valid Art-Net packet will automatically update the NeoPixel LEDs.

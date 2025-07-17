@@ -5,9 +5,17 @@
 
 ArtnetETH::ArtnetETH() {}
 
-void ArtnetETH::begin() {
-    Udp.begin(ART_NET_PORT);            // Start listening on the Art-Net port
+void ArtnetETH::begin(uint16_t universeCount, uint16_t baseUniv) {
+    numUniverses = universeCount;
+    baseUniverse = baseUniv;
+
+    if (dmxFrame) free(dmxFrame);
+    dmxFrame = (uint8_t*)malloc(numUniverses * 512);
+    memset(dmxFrame, 0, numUniverses * 512);
+
+    Udp.begin(ART_NET_PORT);
 }
+
 
 bool ArtnetETH::read() {
     int packetSize = Udp.parsePacket();
@@ -31,8 +39,16 @@ bool ArtnetETH::read() {
     if (length > 512) length = 512;
 
     // Copy DMX data
-    memcpy(dmxFrame, &packetBuffer[18], length);
-
+    uint16_t universeIndex = universe - baseUniverse;
+    if (universeIndex < numUniverses) {
+        uint8_t* dest = &dmxFrame[universeIndex * 512];
+        memset(dest, 0, 512);  // Clear universe buffer first
+    
+        // Copy only up to 512 or available length
+        uint16_t copyLen = (length > 512) ? 512 : length;
+        memcpy(dest, &packetBuffer[18], copyLen);
+    }
+    
     // After reading, immediately update the LEDs
     updateNeoPixel();
 
@@ -63,10 +79,16 @@ void ArtnetETH::updateNeoPixel() {
     for (uint16_t i = 0; i < pixelCount; i++) {
         uint16_t chan = pixelStartChannel + i * 3;
         uint8_t r = 0, g = 0, b = 0;
-        if (chan + 2 < length) {
-            r = dmxFrame[chan];
-            g = dmxFrame[chan + 1];
-            b = dmxFrame[chan + 2];
+        auto remap = [&](uint16_t ch) {
+            uint16_t univ = ch / 510;
+            uint16_t offset = ch % 510;
+            return univ * 512 + offset;
+        };
+        
+        if ((chan + 2) < numUniverses * 510) {
+            r = dmxFrame[remap(chan)];
+            g = dmxFrame[remap(chan + 1)];
+            b = dmxFrame[remap(chan + 2)];
         }
         pixels->setPixelColor(i, pixels->Color(r, g, b));
     }

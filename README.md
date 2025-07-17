@@ -1,9 +1,29 @@
 # ArtnetETH
 
-**Version**: 1.1.0\
+**Version**: 1.2.0\
 **Author**: Anoof Chappangathil [anoof7262@gmail.com](mailto\:anoof7262@gmail.com)
 
 Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP32 boards using the LAN8720 PHY (e.g., LILYGO T-Ethernet Lite).
+
+## 🚀 What's New in Version 1.2.0
+
+The ArtnetETH library now supports multi-universe Art-Net DMX for large-scale LED setups — perfect for installations with hundreds of NeoPixels across multiple universes.
+
+
+### 🆕 Key Updates
+ - ✅ Dynamic Universe Support: Configure how many Art-Net universes to receive directly in your sketch:
+```cpp
+artnet.begin(universeCount, baseUniverse);
+```
+ - ✅ Accurate NeoPixel Mapping: Automatically compensates for Art-Net senders that send only 510 channels per universe.
+
+ - ✅ Improved Examples: NeoPixel and DMX utilities updated to support multi-universe scenarios.
+
+ - ✅ Memory-efficient: DMX frame buffer dynamically allocated based on your universe count.
+
+ > Now you can drive LED strips longer than 170 pixels (510 channels) with ease!
+
+
 
 ## Features
 
@@ -67,57 +87,38 @@ Arduino library to receive Art-Net DMX (ArtDMX) over Ethernet, tailored for ESP3
 #include <WiFiUdp.h>
 #include <ArtnetETH.h>
 
-// Replace with your board-specific PHY settings if needed
 #define ETH_TYPE       ETH_PHY_LAN8720
 #define ETH_ADDR       1
 #define ETH_POWER_PIN  -1
 #define ETH_MDC_PIN    23
 #define ETH_MDIO_PIN   18
 
+#define ARTNET_UNIVERSES  2
+#define BASE_UNIVERSE     0
+
 ArtnetETH artnet;
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("Starting ArtnetETH Example");
 
-  // Initialize Ethernet
   ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE);
+  while (!ETH.linkUp()) delay(100);
 
-  // Wait for Ethernet link
-  Serial.println("Waiting for Ethernet link...");
-  while (!ETH.linkUp()) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  Serial.println();
-  Serial.print("Connected, IP address: ");
-  Serial.println(ETH.localIP());
-
-  artnet.begin();
+  artnet.begin(ARTNET_UNIVERSES, BASE_UNIVERSE);
 }
 
 void loop() {
   if (artnet.read()) {
-    Serial.print("DMX Received - Universe: ");
+    Serial.print("Universe: ");
     Serial.print(artnet.getUniverse());
     Serial.print(" | Length: ");
-    Serial.print(artnet.getLength());
-    Serial.print(" | First Channel Value: ");
-    Serial.println(artnet.getDmxFrame()[0]);
-
-    // Example: turn on an LED if first DMX value is above threshold
-    if (artnet.getDmxFrame()[0] > 127) {
-      // digitalWrite(LED_BUILTIN, HIGH);
-    } else {
-      // digitalWrite(LED_BUILTIN, LOW);
-    }
+    Serial.println(artnet.getLength());
   }
 }
 ```
 
-### NeoPixel Example
+### NeoPixel Example (Now Supports Multiple Universes)
 
 This example shows how to control a WS2812/NeoPixel LED strip using Art-Net DMX data. Each pixel uses 3 DMX channels (R, G, B).
 
@@ -132,9 +133,12 @@ This example shows how to control a WS2812/NeoPixel LED strip using Art-Net DMX 
 #define ETH_MDC_PIN    23
 #define ETH_MDIO_PIN   18
 
-#define NEOPIXEL_PIN   13        // GPIO for NeoPixel data
-#define NUM_PIXELS     16        // Number of LEDs in the strip
-#define DMX_START_CH   0         // Start at DMX channel 0
+#define NEOPIXEL_PIN   13
+#define NUM_PIXELS     340
+#define DMX_START_CH   0
+
+#define ARTNET_UNIVERSES  ((NUM_PIXELS * 3 + 509) / 510)
+#define BASE_UNIVERSE     0
 
 ArtnetETH artnet;
 
@@ -145,18 +149,12 @@ void setup() {
   ETH.begin(ETH_ADDR, ETH_POWER_PIN, ETH_MDC_PIN, ETH_MDIO_PIN, ETH_TYPE);
   while (!ETH.linkUp()) delay(100);
 
-  Serial.println("Starting ArtnetETH NeoPixel Example");
-  Serial.print("IP address: ");
-  Serial.println(ETH.localIP());
-
-  artnet.begin();
-
-  // Initialize NeoPixel (pin, num pixels, start DMX channel)
+  artnet.begin(ARTNET_UNIVERSES, BASE_UNIVERSE);
   artnet.initNeoPixel(NEOPIXEL_PIN, NUM_PIXELS, DMX_START_CH);
 }
 
 void loop() {
-  artnet.read();  // Art-Net DMX received frames update NeoPixels automatically
+  artnet.read();  // Automatically updates NeoPixels
 }
 ```
 

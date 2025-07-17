@@ -15,6 +15,9 @@
 #define ETH_MDC_PIN    23
 #define ETH_MDIO_PIN   18
 
+#define ARTNET_UNIVERSES  2 // Number of Art-Net universes to handle
+#define BASE_UNIVERSE     0 // Starting universe number
+
 ArtnetETH artnet;
 
 void setup() {
@@ -36,23 +39,26 @@ void setup() {
   Serial.print("Connected, IP address: ");
   Serial.println(ETH.localIP());
 
-  artnet.begin();
+  artnet.begin(ARTNET_UNIVERSES, BASE_UNIVERSE);
 }
 
 void loop() {
   if (artnet.read()) {
-    Serial.print("DMX Received - Universe: ");
+    Serial.print("Universe: ");
     Serial.print(artnet.getUniverse());
     Serial.print(" | Length: ");
     Serial.print(artnet.getLength());
-    Serial.print(" | First Channel Value: ");
-    Serial.println(artnet.getDmxFrame()[0]);
 
-    // Example: turn on an LED if first DMX value is above threshold
-    if (artnet.getDmxFrame()[0] > 127) {
-      // digitalWrite(LED_BUILTIN, HIGH);
-    } else {
-      // digitalWrite(LED_BUILTIN, LOW);
+    uint8_t* dmx = artnet.getDmxFrame();
+
+    // Print first 10 channels of the received universe
+    for (int i = 0; i < 10; i++) {
+      Serial.print(" | CH");
+      Serial.print(i);
+      Serial.print(": ");
+      Serial.print(dmx[i]);
     }
+
+    Serial.println();
   }
 }

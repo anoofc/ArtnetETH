@@ -8,7 +8,8 @@
 class ArtnetETH {
 public:
     ArtnetETH();                    
-    void begin();                   // Initialize the Art-Net receiver
+    // Modify begin()
+    void begin(uint16_t universeCount = 1, uint16_t baseUniv = 0);
     bool read();                    // Read the next Art-Net packet, returns true if a valid packet was received 
     uint8_t* getDmxFrame();         // Returns a pointer to the DMX frame data (512 bytes)
     uint16_t getUniverse();         // Returns the universe number of the DMX frame (0-65535)
@@ -42,7 +43,9 @@ private:
     uint8_t sequence;                   // Sequence number (0-255)
     uint16_t universe;                  // Universe number (0-65535)    
     uint16_t length;                    // Length of the DMX frame (0-512)
-    uint8_t dmxFrame[512];              // DMX frame data (512 bytes)
+    uint8_t* dmxFrame = nullptr;
+    uint16_t numUniverses = 1;
+    uint16_t baseUniverse = 0;
 
     Adafruit_NeoPixel* pixels = nullptr;    // Pointer to the NeoPixel strip object
     uint16_t pixelCount = 0;                // Number of pixels in the strip
