@@ -21,7 +21,7 @@ artnet.begin(universeCount, baseUniverse);
 
  - ✅ Memory-efficient: DMX frame buffer dynamically allocated based on your universe count.
 
- > Now you can drive LED strips longer than 170 pixels (510 channels) with ease!
+ > 💡 Now you can drive LED strips longer than 170 pixels (510 channels) with ease!
 
 
 
